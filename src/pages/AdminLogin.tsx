@@ -10,8 +10,10 @@ const AdminLogin: React.FC = () => {
   const [error, setError] = useState('');
   const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY) || '');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
 
     if (!token.trim()) {
       setError('JWT token is required to access admin endpoints.');
