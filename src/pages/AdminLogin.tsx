@@ -1,40 +1,24 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiLock, FiMail, FiEye, FiEyeOff, FiShield } from '../utils/icons';
+import { FiLock, FiEye, FiEyeOff, FiShield } from '../utils/icons';
 
-const ADMIN_EMAIL = 'admin@purelocks.com';
-const ADMIN_PASSWORD = 'admin123';
-const ADMIN_AUTH_KEY = 'isAdminAuthenticated';
+const AUTH_TOKEN_KEY = 'purelocks_token';
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
+  const [showToken, setShowToken] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (error) {
-      setError('');
-    }
-  };
+  const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY) || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const isValidAdmin =
-      formData.email.trim().toLowerCase() === ADMIN_EMAIL &&
-      formData.password === ADMIN_PASSWORD;
-
-    if (!isValidAdmin) {
-      setError('Invalid admin credentials. Use the demo credentials below.');
+    if (!token.trim()) {
+      setError('JWT token is required to access admin endpoints.');
       return;
     }
 
-    localStorage.setItem(ADMIN_AUTH_KEY, 'true');
+    localStorage.setItem(AUTH_TOKEN_KEY, token.trim());
     navigate('/admin');
   };
 
@@ -46,60 +30,48 @@ const AdminLogin: React.FC = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary-100 to-secondary-100 mb-4">
               <FiShield className="w-8 h-8 text-primary-600" />
             </div>
-            <h1 className="text-3xl font-bold">Admin Login</h1>
-            <p className="text-gray-600 mt-2">Sign in to manage your storefront</p>
+            <h1 className="text-3xl font-bold">Admin Access</h1>
+            <p className="text-gray-600 mt-2">Use your admin JWT to manage products.</p>
           </div>
 
           <div className="mb-6 rounded-xl border border-dashed border-primary-200 bg-primary-50/50 p-4 text-sm text-gray-700">
-            <p className="font-semibold text-primary-700">Demo admin credentials</p>
-            <p>Email: admin@purelocks.com</p>
-            <p>Password: admin123</p>
+            <p className="font-semibold text-primary-700">How it works</p>
+            <p>This page stores your JWT in localStorage under <code>purelocks_token</code>.</p>
+            <p>Requests to <code>/api/v1/products</code> are sent with <code>Authorization: Bearer &lt;token&gt;</code>.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium mb-2">Admin Email</label>
-              <div className="relative">
-                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="email"
-                  required
-                  className="input-field pl-10"
-                  value={formData.email}
-                  onChange={(e) => handleChange('email', e.target.value)}
-                  placeholder="admin@purelocks.com"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Password</label>
+              <label className="block text-sm font-medium mb-2">Admin JWT</label>
               <div className="relative">
                 <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showToken ? 'text' : 'password'}
                   required
                   className="input-field pl-10 pr-10"
-                  value={formData.password}
-                  onChange={(e) => handleChange('password', e.target.value)}
-                  placeholder="••••••••"
+                  value={token}
+                  onChange={(e) => {
+                    setToken(e.target.value);
+                    if (error) {
+                      setError('');
+                    }
+                  }}
+                  placeholder="Paste admin JWT"
                 />
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  onClick={() => setShowPassword((prev) => !prev)}
+                  onClick={() => setShowToken((prev) => !prev)}
                 >
-                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                  {showToken ? <FiEyeOff /> : <FiEye />}
                 </button>
               </div>
             </div>
 
-            {error && (
-              <p className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
-            )}
+            {error && <p className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
             <button type="submit" className="btn-primary w-full">
-              Sign in as Admin
+              Continue to Admin Panel
             </button>
           </form>
 
