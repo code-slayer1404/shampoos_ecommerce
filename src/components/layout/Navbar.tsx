@@ -1,13 +1,14 @@
-// src/components/layout/Navbar.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiShoppingCart, FiUser, FiMenu, FiX } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiMenu, FiX, FiShield } from '../../utils/icons';
 import { useCart } from '../../context/CartContext';
-import { useState } from 'react';
+
+const ADMIN_AUTH_KEY = 'isAdminAuthenticated';
 
 const Navbar: React.FC = () => {
   const { getCartCount } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isAdminAuthenticated = localStorage.getItem(ADMIN_AUTH_KEY) === 'true';
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
@@ -47,9 +48,13 @@ const Navbar: React.FC = () => {
                 </span>
               )}
             </Link>
-            
+
             <Link to="/login">
               <FiUser className="w-6 h-6 text-gray-600 hover:text-primary-600 transition-colors" />
+            </Link>
+
+            <Link to={isAdminAuthenticated ? '/admin' : '/admin/login'} title="Admin">
+              <FiShield className="w-6 h-6 text-gray-600 hover:text-primary-600 transition-colors" />
             </Link>
 
             {/* Mobile Menu Button */}
@@ -97,6 +102,13 @@ const Navbar: React.FC = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Contact
+              </Link>
+              <Link
+                to={isAdminAuthenticated ? '/admin' : '/admin/login'}
+                className="text-gray-600 hover:text-primary-600 transition-colors py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Admin
               </Link>
             </div>
           </div>

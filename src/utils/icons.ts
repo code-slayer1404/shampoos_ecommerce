@@ -39,6 +39,8 @@ import {
   FiAlertCircle,
   FiInfo,
   FiXCircle,
+  FiUsers,
+  FiLogOut,
 } from 'react-icons/fi';
 
 // Export all with consistent names
@@ -82,4 +84,6 @@ export {
   FiAlertCircle,
   FiInfo,
   FiXCircle,
+  FiUsers,
+  FiLogOut,
 };
