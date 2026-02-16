@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { FiShoppingCart, FiUser, FiMenu, FiX, FiShield } from '../../utils/icons';
 import { useCart } from '../../context/CartContext';
 
-const ADMIN_AUTH_KEY = 'isAdminAuthenticated';
+const AUTH_TOKEN_KEY = 'purelocks_token';
 
 const Navbar: React.FC = () => {
   const { getCartCount } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isAdminAuthenticated = localStorage.getItem(ADMIN_AUTH_KEY) === 'true';
+  const isAdminAuthenticated = Boolean(localStorage.getItem(AUTH_TOKEN_KEY));
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">

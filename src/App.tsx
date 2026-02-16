@@ -16,10 +16,10 @@ import { CartProvider } from './context/CartContext'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import './App.css'
 
-const ADMIN_AUTH_KEY = 'isAdminAuthenticated'
+const AUTH_TOKEN_KEY = 'purelocks_token'
 
 const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const isAuthenticated = localStorage.getItem(ADMIN_AUTH_KEY) === 'true'
+  const isAuthenticated = Boolean(localStorage.getItem(AUTH_TOKEN_KEY))
   return isAuthenticated ? <>{children}</> : <Navigate to="/admin/login" replace />
 }
 
