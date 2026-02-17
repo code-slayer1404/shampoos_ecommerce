@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -34,6 +34,9 @@ const AdminLoginPage = () => {
           <Input label="Password" type="password" required value={form.password} onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))} />
           {error && <p className="text-sm text-red-500">{error}</p>}
           <Button type="submit" isLoading={isSubmitting} className="w-full">Sign In</Button>
+          <Link to="/" className="inline-flex w-full items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+            Back to Home
+          </Link>
         </div>
       </form>
     </div>

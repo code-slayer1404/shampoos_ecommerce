@@ -18,9 +18,26 @@ export interface LoginResponse {
   user: AuthUser
 }
 
+const getToken = (primary: any, fallback: any): string | null => {
+  return primary?.token || primary?.accessToken || primary?.jwt || fallback?.token || fallback?.accessToken || fallback?.jwt || null
+}
+
+const getUser = (primary: any, fallback: any): AuthUser | null => {
+  return primary?.user || primary?.admin || primary?.profile || fallback?.user || fallback?.admin || fallback?.profile || null
+}
+
 export const authService = {
   async adminLogin(payload: LoginPayload): Promise<LoginResponse> {
     const response = await api.post('/auth/login', payload)
-    return response.data.data || response.data
+    const rawPayload = response?.data || {}
+    const nestedPayload = rawPayload?.data || {}
+    const token = getToken(nestedPayload, rawPayload)
+    const user = getUser(nestedPayload, rawPayload)
+
+    if (!token || !user) {
+      throw new Error('Invalid login response payload')
+    }
+
+    return { token, user }
   },
 }
