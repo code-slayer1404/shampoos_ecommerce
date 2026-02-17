@@ -1,41 +1,60 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiLock, FiMail, FiEye, FiEyeOff, FiShield } from '../utils/icons';
+import { authService } from '../services/authService';
 
-const ADMIN_EMAIL = 'admin@purelocks.com';
-const ADMIN_PASSWORD = 'admin123';
-const ADMIN_AUTH_KEY = 'isAdminAuthenticated';
+const AUTH_TOKEN_KEY = 'purelocks_token';
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    identifier: '',
     password: '',
   });
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: 'identifier' | 'password', value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (error) {
       setError('');
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
 
-    const isValidAdmin =
-      formData.email.trim().toLowerCase() === ADMIN_EMAIL &&
-      formData.password === ADMIN_PASSWORD;
+    try {
+      const response = await authService.login(formData.identifier.trim(), formData.password);
+      const responseUser = response.data.user as { role?: string };
+      const storedUserRaw = localStorage.getItem('purelocks_user');
+      const storedUser = storedUserRaw ? (JSON.parse(storedUserRaw) as { role?: string }) : null;
+      const role = responseUser?.role || storedUser?.role;
 
-    if (!isValidAdmin) {
-      setError('Invalid admin credentials. Use the demo credentials below.');
-      return;
+      if (role && role !== 'admin') {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem('purelocks_user');
+        setError('This account does not have admin access.');
+        return;
+      }
+
+      navigate('/admin');
+    } catch (err: unknown) {
+      const message =
+        typeof err === 'object' &&
+        err !== null &&
+        'response' in err &&
+        typeof (err as { response?: { data?: { message?: string } } }).response?.data?.message === 'string'
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message ||
+            'Login failed. Please check your credentials.'
+          : 'Login failed. Please check your credentials.';
+      setError(message);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    localStorage.setItem(ADMIN_AUTH_KEY, 'true');
-    navigate('/admin');
   };
 
   return (
@@ -47,27 +66,27 @@ const AdminLogin: React.FC = () => {
               <FiShield className="w-8 h-8 text-primary-600" />
             </div>
             <h1 className="text-3xl font-bold">Admin Login</h1>
-            <p className="text-gray-600 mt-2">Sign in to manage your storefront</p>
+            <p className="text-gray-600 mt-2">Sign in with your admin credentials.</p>
           </div>
 
-          <div className="mb-6 rounded-xl border border-dashed border-primary-200 bg-primary-50/50 p-4 text-sm text-gray-700">
-            <p className="font-semibold text-primary-700">Demo admin credentials</p>
-            <p>Email: admin@purelocks.com</p>
-            <p>Password: admin123</p>
-          </div>
+          <p className="mb-6 rounded-xl border border-dashed border-primary-200 bg-primary-50/50 p-4 text-sm text-gray-700">
+            Your backend issues JWT after login. This app stores it in <code>localStorage</code> and automatically sends
+            <code> Authorization: Bearer &lt;jwt&gt;</code> on API requests.
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium mb-2">Admin Email</label>
+              <label className="block text-sm font-medium mb-2">Email / Username</label>
               <div className="relative">
                 <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
-                  type="email"
+                  type="text"
                   required
                   className="input-field pl-10"
-                  value={formData.email}
-                  onChange={(e) => handleChange('email', e.target.value)}
-                  placeholder="admin@purelocks.com"
+                  value={formData.identifier}
+                  onChange={(e) => handleChange('identifier', e.target.value)}
+                  placeholder="Enter admin email or username"
+                  autoComplete="username"
                 />
               </div>
             </div>
@@ -83,6 +102,7 @@ const AdminLogin: React.FC = () => {
                   value={formData.password}
                   onChange={(e) => handleChange('password', e.target.value)}
                   placeholder="••••••••"
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -94,12 +114,10 @@ const AdminLogin: React.FC = () => {
               </div>
             </div>
 
-            {error && (
-              <p className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
-            )}
+            {error && <p className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
-            <button type="submit" className="btn-primary w-full">
-              Sign in as Admin
+            <button type="submit" className="btn-primary w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Signing in...' : 'Sign in as Admin'}
             </button>
           </form>
 
