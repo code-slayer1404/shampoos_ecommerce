@@ -2,8 +2,7 @@ import { createContext, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService, AuthUser } from '../services/authService'
 import { registerAuthTokenGetter, registerUnauthorizedHandler } from '../services/api'
-
-const AUTH_STORAGE_KEY = 'admin_auth'
+import { authStorage } from '../services/authStorage'
 
 interface AuthContextValue {
   token: string | null
@@ -23,12 +22,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const stored = localStorage.getItem(AUTH_STORAGE_KEY)
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      setToken(parsed.token || null)
-      setUser(parsed.user || null)
-    }
+    setToken(authStorage.getToken())
+    setUser(authStorage.getUser<AuthUser>())
     setIsLoading(false)
   }, [])
 
@@ -36,10 +31,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setToken(nextToken)
     setUser(nextUser)
     if (nextToken && nextUser) {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ token: nextToken, user: nextUser }))
+      authStorage.setToken(nextToken)
+      authStorage.setUser(nextUser)
       return
     }
-    localStorage.removeItem(AUTH_STORAGE_KEY)
+    authStorage.clear()
   }
 
   const logout = () => {
