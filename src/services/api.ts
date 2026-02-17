@@ -1,43 +1,55 @@
-// src/services/api.ts
-import axios from 'axios';
+import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || '/api/v1'
+const AUTH_STORAGE_KEY = 'admin_auth'
+
+let getAuthToken: (() => string | null) | null = null
+let onUnauthorized: (() => void) | null = null
+
+export const registerAuthTokenGetter = (getter: () => string | null) => {
+  getAuthToken = getter
+}
+
+export const registerUnauthorizedHandler = (handler: () => void) => {
+  onUnauthorized = handler
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
-});
+})
 
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('purelocks_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use((config) => {
+  let token = getAuthToken?.() || null
+
+  if (!token) {
+    const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY)
+    if (storedAuth) {
+      try {
+        token = JSON.parse(storedAuth)?.token || null
+      } catch {
+        token = null
+      }
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
   }
-);
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('purelocks_token');
-      window.location.href = '/login';
+    const status = error?.response?.status
+    if (status === 401 || status === 403) {
+      onUnauthorized?.()
     }
-    
-    if (error.response?.status === 500) {
-      console.error('Server error:', error);
-    }
-    
-    return Promise.reject(error);
-  }
-);
+    return Promise.reject(error)
+  },
+)
 
-export default api;
+export default api
