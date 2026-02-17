@@ -39,6 +39,7 @@ export interface AppUser {
 }
 
 const unwrap = <T,>(response: any): T => response.data.data || response.data
+const ADMIN_PREFIX = '/admin'
 
 export const adminService = {
   async getDashboard(): Promise<DashboardStats> {
@@ -59,7 +60,7 @@ export const adminService = {
   },
 
   async getProducts(page = 1, limit = 10): Promise<{ items: Product[]; total: number }> {
-    const response = await api.get('/products', { params: { page, limit } })
+    const response = await api.get(`${ADMIN_PREFIX}/products`, { params: { page, limit } })
     const payload = unwrap<any>(response)
     if (Array.isArray(payload)) {
       return { items: payload, total: payload.length }
@@ -71,21 +72,21 @@ export const adminService = {
   },
 
   async createProduct(payload: ProductFormData): Promise<Product> {
-    const response = await api.post('/products', payload)
+    const response = await api.post(`${ADMIN_PREFIX}/products`, payload)
     return unwrap<Product>(response)
   },
 
   async updateProduct(id: string, payload: ProductFormData): Promise<Product> {
-    const response = await api.patch(`/products/${id}`, payload)
+    const response = await api.patch(`${ADMIN_PREFIX}/products/${id}`, payload)
     return unwrap<Product>(response)
   },
 
   async deleteProduct(id: string): Promise<void> {
-    await api.delete(`/products/${id}`)
+    await api.delete(`${ADMIN_PREFIX}/products/${id}`)
   },
 
   async getOrders(page = 1, limit = 10): Promise<{ items: Order[]; total: number }> {
-    const response = await api.get('/orders', { params: { page, limit } })
+    const response = await api.get(`${ADMIN_PREFIX}/orders`, { params: { page, limit } })
     const payload = unwrap<any>(response)
     if (Array.isArray(payload)) {
       return { items: payload, total: payload.length }
@@ -97,17 +98,17 @@ export const adminService = {
   },
 
   async getOrderDetails(id: string): Promise<Order> {
-    const response = await api.get(`/orders/${id}`)
+    const response = await api.get(`${ADMIN_PREFIX}/orders/${id}`)
     return unwrap<Order>(response)
   },
 
   async updateOrder(id: string, payload: { status: string; trackingId?: string }): Promise<Order> {
-    const response = await api.patch(`/orders/${id}`, payload)
+    const response = await api.patch(`${ADMIN_PREFIX}/orders/${id}`, payload)
     return unwrap<Order>(response)
   },
 
   async getUsers(page = 1, limit = 10): Promise<{ items: AppUser[]; total: number }> {
-    const response = await api.get('/users', { params: { page, limit } })
+    const response = await api.get(`${ADMIN_PREFIX}/users`, { params: { page, limit } })
     const payload = unwrap<any>(response)
     if (Array.isArray(payload)) {
       return { items: payload, total: payload.length }
@@ -119,7 +120,7 @@ export const adminService = {
   },
 
   async updateUser(id: string, payload: { isBlocked: boolean }): Promise<AppUser> {
-    const response = await api.patch(`/users/${id}`, payload)
+    const response = await api.patch(`${ADMIN_PREFIX}/users/${id}`, payload)
     return unwrap<AppUser>(response)
   },
 }
