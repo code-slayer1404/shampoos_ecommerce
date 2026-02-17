@@ -1,7 +1,6 @@
 import axios from 'axios'
 
 const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || '/api/v1'
-const AUTH_STORAGE_KEY = 'admin_auth'
 
 let getAuthToken: (() => string | null) | null = null
 let onUnauthorized: (() => void) | null = null
@@ -22,19 +21,7 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  let token = getAuthToken?.() || null
-
-  if (!token) {
-    const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY)
-    if (storedAuth) {
-      try {
-        token = JSON.parse(storedAuth)?.token || null
-      } catch {
-        token = null
-      }
-    }
-  }
-
+  const token = getAuthToken?.()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }

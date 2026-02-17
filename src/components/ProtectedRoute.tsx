@@ -23,10 +23,7 @@ const ProtectedRoute = ({ children, role = 'admin' }: ProtectedRouteProps) => {
     return <Navigate to="/admin/login" replace />
   }
 
-  const normalizedRequiredRole = role?.toLowerCase()
-  const normalizedUserRole = user?.role?.toLowerCase()
-
-  if (normalizedRequiredRole && normalizedUserRole && normalizedUserRole !== normalizedRequiredRole) {
+  if (role && user?.role !== role) {
     return <Navigate to="/" replace />
   }
 
